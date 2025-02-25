@@ -1,7 +1,8 @@
 "use server";
 
 import { uploadImage } from "@/lib/cloudinary";
-import { storePost } from "@/lib/posts";
+import { storePost, updatePostLikeStatus } from "@/lib/posts";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 export async function createPost(prevState, formData) {
@@ -30,10 +31,9 @@ export async function createPost(prevState, formData) {
   try {
     imageUrl = await uploadImage(image);
   } catch (e) {
-    throw new Error("안댐 ㅋ");
+    throw new Error("에러");
   }
 
-  console.log(imageUrl);
   await storePost({
     imageUrl: imageUrl,
     title,
@@ -42,4 +42,9 @@ export async function createPost(prevState, formData) {
   });
 
   redirect("/feed");
+}
+
+export async function togglePostLikeStatus(postId) {
+  await updatePostLikeStatus(postId, 2);
+  revalidatePath("/feed");
 }
